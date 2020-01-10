@@ -47,7 +47,60 @@ const deleteCohort = (request, response) => {
         if (error) {
             throw error
         }
-        response.status(200).send(`User deleted with ID: ${id}`)
+        response.status(200).send(`Cohort deleted with ID: ${id}`)
+    })
+}
+
+const getStudentById = (request, response) => {
+    const id = parseInt(request.params.id)
+
+    pool.query('SELECT * FROM students WHERE id = $1', [id], (error, results) => {
+        if (error) {
+        throw error
+        }
+        response.status(200).json(results.rows)
+    })
+}
+
+const getStudents = (request, response) => {
+    pool.query('SELECT * FROM students ORDER BY id ASC', (error, results) => {
+        if (error) {
+            throw error
+        }
+        response.status(200).json(results.rows)
+    })
+}
+
+const deleteStudent = (request, response) => {
+    const id = parseInt(request.params.id)
+
+    pool.query('DELETE FROM students WHERE id = $1', [id], (error, results) => {
+        if (error) {
+            throw error
+        }
+        response.status(200).send(`Student deleted with ID: ${id}`)
+    })
+}
+
+const createStudent = (request, response) => {
+    const { name, email, cohort_id, tardies, absences } = request.body
+
+    pool.query('INSERT INTO students (name, email, cohort_id, tardies, absences) VALUES ($1, $2, $3, $4, $5)', [name, email, cohort_id, tardies, absences], (error, results) => {
+        if (error) {
+            throw error
+        }
+        response.status(201).send(`Student added with ID: ${results.insertId}`)
+    })
+}
+
+const getStudentByCohortId = (request, response) => {
+    const id = parseInt(request.params.id)
+
+    pool.query('SELECT * FROM students WHERE cohort_id = $1', [id], (error, results) => {
+        if (error) {
+        throw error
+        }
+        response.status(200).json(results.rows)
     })
 }
 
@@ -56,4 +109,9 @@ module.exports = {
     getCohortById,
     createCohort,
     deleteCohort,
+    createStudent,
+    getStudentByCohortId,
+    deleteStudent,
+    getStudents,
+    getStudentById
 }

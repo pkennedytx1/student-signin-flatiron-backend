@@ -20,6 +20,11 @@ app.get('/cohorts', db.getCohorts)
 app.get('/cohorts/:id', db.getCohortById)
 app.post('/cohorts', db.createCohort)
 app.delete('/cohorts/:id', db.deleteCohort)
+app.get('/cohortstudents/:id', db.getStudentByCohortId)
+app.get('/students/:id', db.getStudentById)
+app.post('/students', db.createStudent)
+app.get('/students', db.getStudents)
+app.delete('/students/:id', db.deleteStudent)
 
 app.listen(PORT, () => {
     console.log(`App running on port ${PORT}.`)
