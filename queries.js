@@ -36,7 +36,7 @@ const createCohort = (request, response) => {
         if (error) {
             throw error
         }
-        response.status(201).send(`Cohort added with ID: ${result.insertId}`)
+        response.status(201).send(`Cohort added with ID: ${results.insertId}`)
     })
 }
 
