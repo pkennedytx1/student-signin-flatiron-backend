@@ -104,6 +104,48 @@ const getStudentByCohortId = (request, response) => {
     })
 }
 
+const studentSignin = (request, response) => {
+    const { code, student_id, date, in_status, out_status } = request.body
+
+    if (code === 'hello') {
+        pool.query('INSERT INTO signins (student_id, date, in_status, out_status) VALUES ($1, $2, $3, $4)', [student_id, date, in_status, out_status], (error, results) => {
+            if (error) {
+                throw error
+            }
+            response.status(200).json(results.rows)
+        })
+    
+        if (in_status === 'late') {
+            handleTardy(student_id, response)
+        } 
+    }
+}
+
+const studentSignOut = (request, response) => {
+    const { code, student_id, date, out_status} = request.body
+
+    if ( code === 'hello') {
+        pool.query('UPDATE signins SET out_status = $1 WHERE student_id = $2 AND date = $3', [out_status, student_id, date], (error, results) => {
+            if (error) {
+                throw error
+            }
+            response.status(200).json(results.rows)
+        })
+
+        if (out_status === 'early_leave') {
+            handleTardy(student_id, response)
+        } 
+    }
+}
+
+let handleTardy = (student_id) => {
+    pool.query('UPDATE students SET tardies = tardies + 1 WHERE id = $1', [student_id], (error) => {
+        if (error) {
+            throw error
+        } 
+    })
+}
+
 module.exports = {
     getCohorts,
     getCohortById,
@@ -113,5 +155,7 @@ module.exports = {
     getStudentByCohortId,
     deleteStudent,
     getStudents,
-    getStudentById
+    getStudentById,
+    studentSignin,
+    studentSignOut
 }
