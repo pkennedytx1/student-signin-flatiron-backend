@@ -25,6 +25,8 @@ app.get('/students/:id', db.getStudentById)
 app.post('/students', db.createStudent)
 app.get('/students', db.getStudents)
 app.delete('/students/:id', db.deleteStudent)
+app.post('/signins', db.studentSignin)
+app.post('/signouts', db.studentSignOut)
 
 app.listen(PORT, () => {
     console.log(`App running on port ${PORT}.`)
