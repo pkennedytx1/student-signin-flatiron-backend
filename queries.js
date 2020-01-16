@@ -1,4 +1,18 @@
 require('dotenv').config()
+const randomWords = require('random-words')
+
+let setCode
+
+let now = new Date()
+let millisTill12 = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0) - now
+if (millisTill12 < 0) {
+     millisTill12 += 43200000
+}
+setTimeout(function(){
+    setCode = randomWords()
+}, millisTill12)
+
+console.log(setCode)
 
 const Pool = require('pg').Pool
 const pool = new Pool({
@@ -8,6 +22,10 @@ const pool = new Pool({
     password: process.env.PASSWORD,
     port: process.env.PORT,
 })
+
+const getCode = (request, response) => {
+    response.status(201).send(setCode)
+}
 
 const getCohorts = (request, response) => {
     pool.query('SELECT * FROM cohorts ORDER BY id ASC', (error, results) => {
@@ -107,7 +125,7 @@ const getStudentByCohortId = (request, response) => {
 const studentSignin = (request, response) => {
     const { code, student_id, date, in_status, out_status } = request.body
 
-    if (code === 'hello') {
+    if (code === setCode) {
         pool.query('INSERT INTO signins (student_id, date, in_status, out_status) VALUES ($1, $2, $3, $4)', [student_id, date, in_status, out_status], (error, results) => {
             if (error) {
                 throw error
@@ -124,7 +142,7 @@ const studentSignin = (request, response) => {
 const studentSignOut = (request, response) => {
     const { code, student_id, date, out_status} = request.body
 
-    if ( code === 'hello') {
+    if ( code === setCode) {
         pool.query('UPDATE signins SET out_status = $1 WHERE student_id = $2 AND date = $3', [out_status, student_id, date], (error, results) => {
             if (error) {
                 throw error
@@ -134,7 +152,7 @@ const studentSignOut = (request, response) => {
 
         if (out_status === 'early_leave') {
             handleTardy(student_id, response)
-        } 
+        }
     }
 }
 
@@ -147,6 +165,7 @@ let handleTardy = (student_id) => {
 }
 
 module.exports = {
+    getCode,
     getCohorts,
     getCohortById,
     createCohort,
