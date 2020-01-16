@@ -1,19 +1,6 @@
 require('dotenv').config()
 const randomWords = require('random-words')
 
-let setCode
-
-let now = new Date()
-let millisTill12 = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0) - now
-if (millisTill12 < 0) {
-     millisTill12 += 43200000
-}
-setTimeout(function(){
-    setCode = randomWords()
-}, millisTill12)
-
-console.log(setCode)
-
 const Pool = require('pg').Pool
 const pool = new Pool({
     user: process.env.USER,
@@ -22,6 +9,31 @@ const pool = new Pool({
     password: process.env.PASSWORD,
     port: process.env.PORT,
 })
+
+let setCode
+
+(function() {
+    pool.query('SELECT code FROM codes WHERE id = 1', (error, results) => {
+        setCode = results.rows[0].code
+    })
+})()
+
+let now = new Date()
+let millisTill12 = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0) - now
+if (millisTill12 < 0) {
+     millisTill12 += 43200000
+}
+setTimeout(function(){
+    let newCode = randomWords()
+    pool.query('UPDATE codes SET code = $1 WHERE id = 1', [newCode], (error, results) => {
+        if (error) {
+            throw error
+        }
+    })
+}, millisTill12)
+
+console.log(setCode)
+
 
 const getCode = (request, response) => {
     response.status(201).send(setCode)
@@ -66,6 +78,17 @@ const deleteCohort = (request, response) => {
             throw error
         }
         response.status(200).send(`Cohort deleted with ID: ${id}`)
+    })
+}
+
+const deleteSignin = (request, response) => {
+    const id = parseInt(request.params.id)
+
+    pool.query('DELETE FROM signins WHERE id = $1', [id], (error, results) => {
+        if (error) {
+            throw error
+        }
+        response.status(200).send(`Signin deleted with ID: ${id}`)
     })
 }
 
@@ -139,6 +162,17 @@ const studentSignin = (request, response) => {
     }
 }
 
+const getStudentSigninsById = (request, response) => {
+    const id = parseInt(request.params.id)
+
+    pool.query('SELECT * FROM signins WHERE student_id = $1', [id], (error, results) => {
+        if (error) {
+            throw error
+        }
+        response.status(200).json(results.rows)
+    })
+}
+
 const studentSignOut = (request, response) => {
     const { code, student_id, date, out_status} = request.body
 
@@ -176,5 +210,7 @@ module.exports = {
     getStudents,
     getStudentById,
     studentSignin,
-    studentSignOut
+    studentSignOut,
+    getStudentSigninsById,
+    deleteSignin
 }
