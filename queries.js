@@ -1,5 +1,29 @@
 require('dotenv').config()
 const randomWords = require('random-words')
+const nodemailer = require('nodemailer')
+
+let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASS
+    }
+})
+
+let mailOptions = {
+    from: process.env.EMAIL,
+    to: '',
+    subject: 'Notice of Abscent - Flatiron School',
+    text: 'By reading this email you acknowledge that you have recieved and absence at Flatiron School. If you have any questions please conect your SEM. \n Thanks and have a good day! \n Flatiron Austin Staff'
+}
+
+transporter.sendMail(mailOptions, function(error, info){
+    if (error) {
+        console.log(error)
+    } else {
+        console.log('Email sent!')
+    }
+})
 
 const Pool = require('pg').Pool
 const pool = new Pool({
