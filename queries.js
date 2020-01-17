@@ -17,13 +17,13 @@ let mailOptions = {
     text: 'By reading this email you acknowledge that you have recieved and absence at Flatiron School. If you have any questions please conect your SEM. \n Thanks and have a good day! \n Flatiron Austin Staff'
 }
 
-transporter.sendMail(mailOptions, function(error, info){
-    if (error) {
-        console.log(error)
-    } else {
-        console.log('Email sent!')
-    }
-})
+// transporter.sendMail(mailOptions, function(error, info){
+//     if (error) {
+//         console.log(error)
+//     } else {
+//         console.log('Email sent!')
+//     }
+// })
 
 const Pool = require('pg').Pool
 const pool = new Pool({
@@ -42,21 +42,19 @@ let setCode
     })
 })()
 
-let now = new Date()
-let millisTill12 = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0) - now
-if (millisTill12 < 0) {
-     millisTill12 += 43200000
-}
-setTimeout(function(){
+const newCode = (request, response) => {
     let newCode = randomWords()
     pool.query('UPDATE codes SET code = $1 WHERE id = 1', [newCode], (error, results) => {
         if (error) {
             throw error
         }
+        response.status(200).send(newCode)
     })
-}, millisTill12)
-
-console.log(setCode)
+    pool.query('SELECT code FROM codes WHERE id = 1', (error, results) => {
+        setCode = results.rows[0].code
+    })
+    
+}
 
 
 const getCode = (request, response) => {
@@ -172,18 +170,26 @@ const getStudentByCohortId = (request, response) => {
 const studentSignin = (request, response) => {
     const { code, student_id, date, in_status, out_status } = request.body
 
-    if (code === setCode) {
-        pool.query('INSERT INTO signins (student_id, date, in_status, out_status) VALUES ($1, $2, $3, $4)', [student_id, date, in_status, out_status], (error, results) => {
-            if (error) {
-                throw error
+    pool.query('SELECT * FROM signins WHERE student_id = $1 AND date = $2', [student_id, date], (error, results) => {
+        if (results.rows.length === 0) {
+            if (code === setCode) {
+                pool.query('INSERT INTO signins (student_id, date, in_status, out_status) VALUES ($1, $2, $3, $4)', [student_id, date, in_status, out_status], (error, results) => {
+                    if (error) {
+                        throw error
+                    }
+                    response.status(200).json(results.rows)
+                })
+            
+                if (in_status === 'late') {
+                    handleTardy(student_id, response)
+                } 
+            } else {
+                response.status(200).send('Invalid Code.')
             }
-            response.status(200).json(results.rows)
-        })
-    
-        if (in_status === 'late') {
-            handleTardy(student_id, response)
-        } 
-    }
+        } else {
+            response.status(200).send('You already signed in.')
+        }
+    })
 }
 
 const getStudentSigninsById = (request, response) => {
@@ -211,6 +217,8 @@ const studentSignOut = (request, response) => {
         if (out_status === 'early_leave') {
             handleTardy(student_id, response)
         }
+    } else {
+        response.status(200).send('Invalid Code.')
     }
 }
 
@@ -224,6 +232,7 @@ let handleTardy = (student_id) => {
 
 module.exports = {
     getCode,
+    newCode,
     getCohorts,
     getCohortById,
     createCohort,
