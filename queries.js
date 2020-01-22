@@ -1,6 +1,7 @@
 require('dotenv').config()
 const randomWords = require('random-words')
 const nodemailer = require('nodemailer')
+let moment = require('moment')
 
 let transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -230,6 +231,39 @@ let handleTardy = (student_id) => {
     })
 }
 
+// need a function that will handle multiple things on signin. 
+
+// 1. Check the last signin date
+// 2. determine the number of days between that date
+// 3. Out of those days determine if the date happened on a Sat or Sun
+// 4. Calculate number of days - okay days = absent.
+// 5. handle current signin
+
+let lastSigninDate
+const checkAbsenceWeekendDaysAndHolidays = (request, response) => {
+    const { student_id, date } = request.body
+    let todaysDate = date
+    findLastSigninDate(student_id)
+    response.status(200).send(`The last signin date was determined`)
+}
+
+let findLastSigninDate = (student_id, date) => {
+    pool.query('SELECT date FROM signins WHERE student_id = $1 ORDER BY date DESC LIMIT 1', [student_id], (error, results) => {
+        if (error) {
+            throw error
+        }
+        if (results.rows[0] !== undefined) {
+            lastSigninDate = results.rows[0].date
+            calculateDays(student_id, date, lastSigninDate)
+        }
+    })
+}
+
+let calculateDays = (student_id, date, lastSigninDate) => {
+    console.log(moment(date).format('X'), moment(lastSigninDate, 'MM/DD/YYYY').format('X'))
+    console.log(student_id)
+}
+
 module.exports = {
     getCode,
     newCode,
@@ -245,5 +279,6 @@ module.exports = {
     studentSignin,
     studentSignOut,
     getStudentSigninsById,
-    deleteSignin
+    deleteSignin,
+    checkAbsenceWeekendDaysAndHolidays
 }
