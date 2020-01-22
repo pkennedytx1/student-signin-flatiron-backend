@@ -154,7 +154,42 @@ const createStudent = (request, response) => {
             throw error
         }
         response.status(201).send(`Student added with ID: ${results.insertId}`)
+        generateSignins(results.insertId, cohort_id)
     })
+    // trigger the creation of 75 entries based upon the start date.
+    // need to skip Saturday, Sunday, and Holidays
+}
+
+let generateSignins = (id, cohort_id) => {
+    // get cohort start date
+    let cohort
+    pool.query('SELECT name FROM cohorts WHERE id = $1', [cohort_id], (error, results) => {
+        if (error) {
+            throw error
+        }
+        cohort = results.rows[0].name
+        console.log(cohort)
+        generateCohortDateArray(cohort)
+    })
+    // generate an array using a for loop with all the dates for the cohort
+    // skip using day() number 6 and 0 for sat and sun
+    // for loop using this date array to generate pre defined entries to be updated 
+}
+
+let generateCohortDateArray = (cohort) => {
+    let startDate = moment(cohort).format('MM/DD/YYYY')
+    let cohortDateArray = []
+    for (i = 0; i < 105; i++) {
+        if (moment(startDate).add(i, 'days').day() === 6 || moment(startDate).add(i, 'days').day() === 0) {
+            console.log('this is a weekend day')
+        } else {
+            cohortDateArray.push(moment(startDate).add(i, 'days').format('MM/DD/YYYY'))
+
+        }
+    }
+    console.log(cohortDateArray)
+    console.log(cohortDateArray.length)
+
 }
 
 const getStudentByCohortId = (request, response) => {
@@ -180,10 +215,6 @@ const studentSignin = (request, response) => {
                     }
                     response.status(200).json(results.rows)
                 })
-            
-                if (in_status === 'late') {
-                    handleTardy(student_id, response)
-                } 
             } else {
                 response.status(200).send('Invalid Code.')
             }
@@ -214,54 +245,9 @@ const studentSignOut = (request, response) => {
             }
             response.status(200).json(results.rows)
         })
-
-        if (out_status === 'early_leave') {
-            handleTardy(student_id, response)
-        }
     } else {
         response.status(200).send('Invalid Code.')
     }
-}
-
-let handleTardy = (student_id) => {
-    pool.query('UPDATE students SET tardies = tardies + 1 WHERE id = $1', [student_id], (error) => {
-        if (error) {
-            throw error
-        } 
-    })
-}
-
-// need a function that will handle multiple things on signin. 
-
-// 1. Check the last signin date
-// 2. determine the number of days between that date
-// 3. Out of those days determine if the date happened on a Sat or Sun
-// 4. Calculate number of days - okay days = absent.
-// 5. handle current signin
-
-let lastSigninDate
-const checkAbsenceWeekendDaysAndHolidays = (request, response) => {
-    const { student_id, date } = request.body
-    let todaysDate = date
-    findLastSigninDate(student_id)
-    response.status(200).send(`The last signin date was determined`)
-}
-
-let findLastSigninDate = (student_id, date) => {
-    pool.query('SELECT date FROM signins WHERE student_id = $1 ORDER BY date DESC LIMIT 1', [student_id], (error, results) => {
-        if (error) {
-            throw error
-        }
-        if (results.rows[0] !== undefined) {
-            lastSigninDate = results.rows[0].date
-            calculateDays(student_id, date, lastSigninDate)
-        }
-    })
-}
-
-let calculateDays = (student_id, date, lastSigninDate) => {
-    console.log(moment(date).format('X'), moment(lastSigninDate, 'MM/DD/YYYY').format('X'))
-    console.log(student_id)
 }
 
 module.exports = {
@@ -279,6 +265,5 @@ module.exports = {
     studentSignin,
     studentSignOut,
     getStudentSigninsById,
-    deleteSignin,
-    checkAbsenceWeekendDaysAndHolidays
+    deleteSignin
 }
