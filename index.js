@@ -31,6 +31,7 @@ app.get('/code', db.getCode)
 app.get('/signins/:id', db.getStudentSigninsById)
 app.delete('/signins/:id', db.deleteSignin)
 app.post('/newcode', db.newCode)
+app.post('/attendancecheck', db.checkAbsenceWeekendDaysAndHolidays)
 
 app.listen(PORT, () => {
     console.log(`App running on port ${PORT}.`)
