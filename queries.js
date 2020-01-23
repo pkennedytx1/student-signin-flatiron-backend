@@ -57,7 +57,6 @@ const newCode = (request, response) => {
     
 }
 
-
 const getCode = (request, response) => {
     response.status(201).send(setCode)
 }
