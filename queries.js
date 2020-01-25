@@ -155,7 +155,7 @@ const createStudent = (request, response) => {
 
         // need to get insertId working
         response.status(201).send(`Student added with ID: ${results.rows[0].id}`)
-        // generateSignins(results.insertId, cohort_id)
+        generateSignins(results.rows[0].id, cohort_id)
     })
     // trigger the creation of 75 entries based upon the start date.
     // need to skip Saturday, Sunday, and Holidays
@@ -190,9 +190,9 @@ let generateCohortDateArray = (id, cohort) => {
     console.log(cohortDateArray)
     console.log(cohortDateArray.length)
     console.log(id)
-    // for (i = 0; i < cohortDateArray.length; i++) {
-    //     pool.query('INSERT INTO signins (student_id, date, in_status, out_status) VALUES ($1, $2, NULL, NULL)', [id, cohortDateArray[i]])
-    // }
+    for (i = 0; i < cohortDateArray.length; i++) {
+        pool.query('INSERT INTO signins (student_id, date, in_status, out_status) VALUES ($1, $2, NULL, NULL)', [id, cohortDateArray[i]])
+    }
 
 }
 
