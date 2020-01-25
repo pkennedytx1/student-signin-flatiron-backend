@@ -148,12 +148,14 @@ const deleteStudent = (request, response) => {
 const createStudent = (request, response) => {
     const { name, email, cohort_id, tardies, absences } = request.body
 
-    pool.query('INSERT INTO students (name, email, cohort_id, tardies, absences) VALUES ($1, $2, $3, $4, $5)', [name, email, cohort_id, tardies, absences], (error, results) => {
+    pool.query('INSERT INTO students (name, email, cohort_id, tardies, absences) VALUES ($1, $2, $3, $4, $5) RETURNING id', [name, email, cohort_id, tardies, absences], (error, results) => {
         if (error) {
             throw error
         }
-        response.status(201).send(`Student added with ID: ${results.insertId}`)
-        generateSignins(results.insertId, cohort_id)
+
+        // need to get insertId working
+        response.status(201).send(`Student added with ID: ${results.rows[0].id}`)
+        // generateSignins(results.insertId, cohort_id)
     })
     // trigger the creation of 75 entries based upon the start date.
     // need to skip Saturday, Sunday, and Holidays
@@ -168,19 +170,18 @@ let generateSignins = (id, cohort_id) => {
         }
         cohort = results.rows[0].name
         console.log(cohort)
-        generateCohortDateArray(cohort)
+        generateCohortDateArray(id, cohort)
     })
     // generate an array using a for loop with all the dates for the cohort
     // skip using day() number 6 and 0 for sat and sun
     // for loop using this date array to generate pre defined entries to be updated 
 }
 
-let generateCohortDateArray = (cohort) => {
+let generateCohortDateArray = (id, cohort) => {
     let startDate = moment(cohort).format('MM/DD/YYYY')
     let cohortDateArray = []
     for (i = 0; i < 105; i++) {
         if (moment(startDate).add(i, 'days').day() === 6 || moment(startDate).add(i, 'days').day() === 0) {
-            console.log('this is a weekend day')
         } else {
             cohortDateArray.push(moment(startDate).add(i, 'days').format('MM/DD/YYYY'))
 
@@ -188,6 +189,10 @@ let generateCohortDateArray = (cohort) => {
     }
     console.log(cohortDateArray)
     console.log(cohortDateArray.length)
+    console.log(id)
+    // for (i = 0; i < cohortDateArray.length; i++) {
+    //     pool.query('INSERT INTO signins (student_id, date, in_status, out_status) VALUES ($1, $2, NULL, NULL)', [id, cohortDateArray[i]])
+    // }
 
 }
 
