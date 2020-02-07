@@ -232,7 +232,7 @@ const getStudentSigninsById = (request, response) => {
     const id = parseInt(request.params.id)
 
     // Need to add query for null
-    pool.query('SELECT * FROM signins WHERE student_id = $1', [id], (error, results) => {
+    pool.query('SELECT * FROM signins WHERE student_id = $1 AND in_status = $2 ORDER BY date ASC', [id, !null], (error, results) => {
         if (error) {
             throw error
         }
