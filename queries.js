@@ -208,12 +208,12 @@ const getStudentByCohortId = (request, response) => {
 }
 
 const studentSignin = (request, response) => {
-    const { code, student_id, date, in_status, out_status } = request.body
+    const { code, student_id, date, in_status } = request.body
 
     pool.query('SELECT * FROM signins WHERE student_id = $1 AND date = $2', [student_id, date], (error, results) => {
-        if (results.rows.length === 0) {
+        if (results.rows[0].in_status === null) {
             if (code === setCode) {
-                pool.query('INSERT INTO signins (student_id, date, in_status, out_status) VALUES ($1, $2, $3, $4)', [student_id, date, in_status, out_status], (error, results) => {
+                pool.query('UPDATE signins SET in_status = $1 WHERE student_id = $2 AND date = $3', [in_status, student_id, date], (error, results) => {
                     if (error) {
                         throw error
                     }
@@ -232,7 +232,7 @@ const getStudentSigninsById = (request, response) => {
     const id = parseInt(request.params.id)
 
     // Need to add query for null
-    pool.query('SELECT * FROM signins WHERE student_id = $1 AND in_status = $2 ORDER BY date ASC', [id, !null], (error, results) => {
+    pool.query('SELECT * FROM signins WHERE student_id = $1 AND in_status IS NOT NULL ORDER BY date ASC', [id], (error, results) => {
         if (error) {
             throw error
         }
