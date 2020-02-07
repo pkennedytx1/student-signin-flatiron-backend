@@ -231,6 +231,7 @@ const studentSignin = (request, response) => {
 const getStudentSigninsById = (request, response) => {
     const id = parseInt(request.params.id)
 
+    // Need to add query for null
     pool.query('SELECT * FROM signins WHERE student_id = $1', [id], (error, results) => {
         if (error) {
             throw error
