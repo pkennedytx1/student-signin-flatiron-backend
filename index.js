@@ -16,6 +16,7 @@ app.use(
 app.get('/', (request, response) => {
     response.json({ info: 'API for attendance app for Flatiron School Austin' })
 })
+
 app.get('/cohorts', db.getCohorts)
 app.get('/cohorts/:id', db.getCohortById)
 app.post('/cohorts', db.createCohort)
