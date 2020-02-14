@@ -2,7 +2,7 @@ const Pool = require('pg').Pool
 const pool = new Pool({
     user: process.env.USER,
     host: process.env.HOST,
-    database: process.env.DATABASE,
+    database: 'signin_api',
     password: process.env.PASSWORD,
     port: process.env.PORT,
 })
@@ -40,8 +40,8 @@ const students = function() {
             name VARCHAR(30) NOT NULL, 
             email VARCHAR(100) NOT NULL, 
             cohort_id INTEGER NOT NULL,
-            tardies INTEGER 0,
-            absences INTEGER 0
+            tardies INTEGER,
+            absences INTEGER
         )`
     , (error) => {
         if (error) {
@@ -56,8 +56,8 @@ const signins = function() {
             ID SERIAL PRIMARY KEY,
             student_id INTEGER NOT NULL, 
             date DATE,
-            in_status NULL, 
-            out_status NULL
+            in_status VARCHAR(30), 
+            out_status VARCHAR(30)
         )`
     , (error) => {
         if (error) {

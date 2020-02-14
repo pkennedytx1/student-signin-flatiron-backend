@@ -231,7 +231,7 @@ const studentSignin = (request, response) => {
 const getStudentSigninsById = (request, response) => {
     const id = parseInt(request.params.id)
 
-    // Need to add query for null
+    // Need to add query for null values for out_status as well. OR statment would be optimum
     pool.query('SELECT * FROM signins WHERE student_id = $1 AND in_status IS NOT NULL ORDER BY date ASC', [id], (error, results) => {
         if (error) {
             throw error
